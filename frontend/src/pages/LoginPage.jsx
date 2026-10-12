@@ -116,6 +116,7 @@ export const LoginPage = () => {
               </label>
               <div className="relative">
                 <input
+                  id="username"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -128,11 +129,12 @@ export const LoginPage = () => {
             </div>
 
             <div>
-              <label className="block font-mono text-[10px] uppercase text-[#5a413c] mb-1">
+              <label htmlFor="password" className="block font-mono text-[10px] uppercase text-[#5a413c] mb-1">
                 Password <span className="text-[#ae2714]">*</span>
               </label>
               <div className="relative">
                 <input
+                  id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

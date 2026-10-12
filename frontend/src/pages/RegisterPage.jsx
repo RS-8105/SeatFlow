@@ -137,6 +137,7 @@ export const RegisterPage = () => {
                 Username <span className="text-[#ae2714]">*</span>
               </label>
               <input
+                id="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -151,10 +152,11 @@ export const RegisterPage = () => {
             </div>
 
             <div>
-              <label className="block font-mono text-[10px] uppercase text-[#5a413c] mb-1">
+              <label htmlFor="email" className="block font-mono text-[10px] uppercase text-[#5a413c] mb-1">
                 Email Address <span className="text-[#ae2714]">*</span>
               </label>
               <input
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -166,10 +168,11 @@ export const RegisterPage = () => {
             </div>
 
             <div>
-              <label className="block font-mono text-[10px] uppercase text-[#5a413c] mb-1">
+              <label htmlFor="password" className="block font-mono text-[10px] uppercase text-[#5a413c] mb-1">
                 Password <span className="text-[#ae2714]">*</span>
               </label>
               <input
+                id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

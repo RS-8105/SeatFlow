@@ -29,14 +29,45 @@ public class GlobalExceptionHandler {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining("; "));
+        if (message == null || message.isBlank()) {
+            message = "Validation failed for request";
+        }
         return buildResponse(HttpStatus.BAD_REQUEST, message, request);
     }
 
-    @ExceptionHandler({IllegalArgumentException.class, MissingRequestHeaderException.class})
+    @ExceptionHandler({
+            IllegalArgumentException.class,
+            IllegalStateException.class,
+            MissingRequestHeaderException.class,
+            org.springframework.http.converter.HttpMessageNotReadableException.class,
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class
+    })
     public ResponseEntity<ErrorResponse> handleBadRequest(
             Exception ex, HttpServletRequest request
     ) {
-        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+        String clientMessage = ex.getMessage();
+        if (ex instanceof MissingRequestHeaderException headerEx) {
+            clientMessage = "Required header '" + headerEx.getHeaderName() + "' is missing";
+        } else if (ex instanceof org.springframework.http.converter.HttpMessageNotReadableException) {
+            clientMessage = "Malformed request body or invalid JSON format";
+        } else if (ex instanceof org.springframework.web.method.annotation.MethodArgumentTypeMismatchException mismatchEx) {
+            clientMessage = "Invalid format for parameter '" + mismatchEx.getName() + "'";
+        }
+        return buildResponse(HttpStatus.BAD_REQUEST, clientMessage, request);
+    }
+
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotAllowed(
+            org.springframework.web.HttpRequestMethodNotSupportedException ex, HttpServletRequest request
+    ) {
+        return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFound(
+            org.springframework.web.servlet.resource.NoResourceFoundException ex, HttpServletRequest request
+    ) {
+        return buildResponse(HttpStatus.NOT_FOUND, "Resource not found: " + request.getRequestURI(), request);
     }
 
     @ExceptionHandler({ResourceNotFoundException.class, HoldNotFoundOrExpiredException.class})

@@ -56,7 +56,7 @@ public class PaymentService {
         validateInputs(bookingId, userId);
 
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new IllegalArgumentException("Booking not found with ID: " + bookingId));
+                .orElseThrow(() -> new com.ticketbooking.exception.ResourceNotFoundException("Booking not found with ID: " + bookingId));
 
         if (!booking.getUserId().equals(userId)) {
             throw new com.ticketbooking.exception.HoldOwnershipException("User " + userId + " does not own booking " + bookingId);

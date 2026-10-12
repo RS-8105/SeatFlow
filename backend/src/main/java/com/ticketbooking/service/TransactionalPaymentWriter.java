@@ -32,7 +32,7 @@ public class TransactionalPaymentWriter {
 
         // Acquire exclusive row lock on the booking row to serialize concurrent payment attempts for the same booking
         Booking booking = bookingRepository.findByIdWithLock(bookingId)
-                .orElseThrow(() -> new IllegalArgumentException("Booking not found with ID: " + bookingId));
+                .orElseThrow(() -> new com.ticketbooking.exception.ResourceNotFoundException("Booking not found with ID: " + bookingId));
 
         if (!booking.getUserId().equals(userId)) {
             throw new com.ticketbooking.exception.HoldOwnershipException("User " + userId + " does not own booking " + bookingId);

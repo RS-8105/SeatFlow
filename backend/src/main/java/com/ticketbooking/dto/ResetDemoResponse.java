@@ -5,4 +5,7 @@ public record ResetDemoResponse(
         int releasedHoldsCount,
         String message
 ) {
+    public int releasedSeatCount() {
+        return releasedHoldsCount;
+    }
 }

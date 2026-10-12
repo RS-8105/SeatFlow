@@ -380,10 +380,11 @@ export const CheckoutPage = () => {
             <form onSubmit={handleConfirm} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-mono text-[10px] text-[#5a413c] uppercase mb-1">
+                  <label htmlFor="firstName" className="block font-mono text-[10px] text-[#5a413c] uppercase mb-1">
                     First Name
                   </label>
                   <input
+                    id="firstName"
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
@@ -392,10 +393,11 @@ export const CheckoutPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="block font-mono text-[10px] text-[#5a413c] uppercase mb-1">
+                  <label htmlFor="lastName" className="block font-mono text-[10px] text-[#5a413c] uppercase mb-1">
                     Last Name
                   </label>
                   <input
+                    id="lastName"
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
@@ -406,10 +408,11 @@ export const CheckoutPage = () => {
               </div>
 
               <div>
-                <label className="block font-mono text-[10px] text-[#5a413c] uppercase mb-1">
+                <label htmlFor="checkout-email" className="block font-mono text-[10px] text-[#5a413c] uppercase mb-1">
                   Dispatch Email
                 </label>
                 <input
+                  id="checkout-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}

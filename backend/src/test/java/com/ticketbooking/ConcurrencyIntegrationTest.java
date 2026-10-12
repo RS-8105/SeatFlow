@@ -1,8 +1,12 @@
 package com.ticketbooking;
 
+import com.ticketbooking.controller.ConcurrencyLabController;
 import com.ticketbooking.domain.Booking;
 import com.ticketbooking.domain.BookingStatus;
+import com.ticketbooking.dto.RaceRequest;
 import com.ticketbooking.dto.RaceResponse;
+import com.ticketbooking.dto.ResetDemoRequest;
+import com.ticketbooking.dto.ResetDemoResponse;
 import com.ticketbooking.exception.HoldNotFoundOrExpiredException;
 import com.ticketbooking.exception.HoldOwnershipException;
 import com.ticketbooking.exception.SeatAlreadyBookedException;
@@ -19,18 +23,18 @@ import com.ticketbooking.service.RedisLockService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
@@ -44,6 +48,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest(classes = TicketBookingApplication.class)
 @ActiveProfiles("test")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ConcurrencyIntegrationTest {
 
     @Autowired
@@ -57,6 +62,9 @@ public class ConcurrencyIntegrationTest {
 
     @Autowired
     private ConcurrencyLabService concurrencyLabService;
+
+    @Autowired
+    private ConcurrencyLabController concurrencyLabController;
 
     @Autowired
     private BookingRepository bookingRepository;
@@ -78,7 +86,7 @@ public class ConcurrencyIntegrationTest {
     @BeforeEach
     @AfterEach
     public void cleanupState() {
-        // Clear all Redis keys in current test DB
+        // Clear all Redis keys in current isolated test DB (Redis DB 1)
         try {
             Objects.requireNonNull(redisTemplate.getConnectionFactory())
                     .getConnection()
@@ -87,7 +95,7 @@ public class ConcurrencyIntegrationTest {
         } catch (Exception ignored) {
         }
 
-        // Clean up test bookings and booking seats from DB
+        // Clean up test bookings and booking seats from isolated DB (ticketbooking_test)
         try {
             bookingSeatRepository.deleteAll();
             bookingRepository.deleteAll();
@@ -96,8 +104,9 @@ public class ConcurrencyIntegrationTest {
     }
 
     @Test
-    @DisplayName("1. Same-seat contention: Only 1 of multiple concurrent users acquires the hold")
-    public void testSameSeatContention_onlyOneHoldGranted() throws InterruptedException {
+    @Order(1)
+    @DisplayName("1. Same-seat contention: Multiple users attempt to hold the same seat concurrently (at most one succeeds)")
+    public void test01_sameSeatContention_onlyOneHoldGranted() throws InterruptedException {
         final Long targetSeatId = 1L;
         final int userCount = 20;
 
@@ -140,14 +149,15 @@ public class ConcurrencyIntegrationTest {
         assertThat(winner).isNotNull();
         assertThat(winner.seatIds()).containsExactly(targetSeatId);
 
-        // Verify Redis lock is held by the winner's token
+        // Verify Redis lock is held exclusively by the winner's token
         String activeToken = redisLockService.getHoldToken(SHOWTIME_ID, targetSeatId);
         assertThat(activeToken).isEqualTo(winner.holdToken());
     }
 
     @Test
-    @DisplayName("2. Different-seat concurrency: Independent concurrent requests for different seats all succeed")
-    public void testDifferentSeatConcurrency_allIndependentRequestsSucceed() throws InterruptedException {
+    @Order(2)
+    @DisplayName("2. Different-seat concurrency: Users competing for different seats succeed independently")
+    public void test02_differentSeatConcurrency_allIndependentRequestsSucceed() throws InterruptedException {
         final List<Long> independentSeatIds = List.of(5L, 6L, 7L, 8L, 9L);
         final int threadCount = independentSeatIds.size();
 
@@ -188,8 +198,9 @@ public class ConcurrencyIntegrationTest {
     }
 
     @Test
-    @DisplayName("3. Hold ownership: Cannot release another user's hold with invalid or mismatched token")
-    public void testHoldOwnership_cannotReleaseWithMismatchedCredentials() {
+    @Order(3)
+    @DisplayName("3. Hold ownership: A user cannot release another user's hold using an incorrect or mismatched token")
+    public void test03_holdOwnership_cannotReleaseWithIncorrectTokenOrUser() {
         final Long seatId = 12L;
         final String ownerUserId = "alice-owner";
         final String attackerUserId = "mallory-attacker";
@@ -202,25 +213,26 @@ public class ConcurrencyIntegrationTest {
                 holdService.releaseHold(SHOWTIME_ID, List.of(seatId), aliceHold.holdToken(), attackerUserId)
         ).isInstanceOf(HoldOwnershipException.class);
 
-        // 2. Attacker attempts to release with a bogus token -> HoldNotFoundOrExpiredException
+        // 2. Attacker attempts to release with an arbitrary bogus token -> HoldNotFoundOrExpiredException
         String bogusToken = UUID.randomUUID().toString();
         assertThatThrownBy(() ->
                 holdService.releaseHold(SHOWTIME_ID, List.of(seatId), bogusToken, attackerUserId)
         ).isInstanceOf(HoldNotFoundOrExpiredException.class);
 
-        // Verify seat is STILL safely held by Alice
+        // Verify seat remains held in Redis by Alice
         assertThat(redisLockService.isSeatHeld(SHOWTIME_ID, seatId)).isTrue();
         assertThat(redisLockService.validateHoldOwnership(SHOWTIME_ID, seatId, aliceHold.holdToken())).isTrue();
 
-        // 3. Legitimate owner successfully releases
+        // 3. Legitimate owner releases successfully
         var releaseResult = holdService.releaseHold(SHOWTIME_ID, List.of(seatId), aliceHold.holdToken(), ownerUserId);
         assertThat(releaseResult.fullyReleased()).isTrue();
         assertThat(redisLockService.isSeatHeld(SHOWTIME_ID, seatId)).isFalse();
     }
 
     @Test
-    @DisplayName("4. Hold expiration: An expired hold automatically allows new user acquisition")
-    public void testHoldExpiration_expiredHoldAllowsNewAcquisition() throws InterruptedException {
+    @Order(4)
+    @DisplayName("4. Hold expiry: After a hold expires, another user can acquire the seat")
+    public void test04_holdExpiry_expiredHoldAllowsNewAcquisition() throws InterruptedException {
         final Long seatId = 15L;
         final String firstUser = "user-expired";
         final String secondUser = "user-successor";
@@ -248,8 +260,9 @@ public class ConcurrencyIntegrationTest {
     }
 
     @Test
-    @DisplayName("5. Duplicate confirmation: Same idempotency key replay returns same booking without duplicate rows")
-    public void testDuplicateConfirmation_idempotencyReplayIsIdempotent() {
+    @Order(5)
+    @DisplayName("5. Duplicate confirmation: Repeating confirmation with same idempotency key does not create duplicates")
+    public void test05_duplicateConfirmation_idempotencyReplayPreventsDuplicates() {
         final Long seatId = 18L;
         final String userId = "user-idempotent";
         final String idempotencyKey = "idem-key-" + UUID.randomUUID();
@@ -287,15 +300,16 @@ public class ConcurrencyIntegrationTest {
     }
 
     @Test
-    @DisplayName("6. Double booking protection: Concurrent booking confirmations for the same seat cannot double book")
-    public void testDoubleBookingProtection_concurrentConfirmsCannotDoubleBook() throws InterruptedException {
+    @Order(6)
+    @DisplayName("6. Concurrent booking attempts: Concurrent confirmations must not double-book the same seat")
+    public void test06_concurrentBookingAttempts_cannotDoubleBookSeat() throws InterruptedException {
         final Long seatId = 22L;
         final String userA = "user-racer-a";
         final String userB = "user-racer-b";
         final String idempotencyKeyA = "race-key-a-" + UUID.randomUUID();
         final String idempotencyKeyB = "race-key-b-" + UUID.randomUUID();
 
-        // Give both users valid simulated holds in Redis to test DB race condition defense
+        // Give both users valid simulated holds in Redis to test PostgreSQL race condition defense
         final String tokenA = UUID.randomUUID().toString();
         final String tokenB = UUID.randomUUID().toString();
         redisTemplate.opsForValue().set("hold_owner:" + tokenA, userA, Duration.ofSeconds(60));
@@ -342,7 +356,7 @@ public class ConcurrencyIntegrationTest {
         executor.shutdownNow();
 
         assertThat(completed).isTrue();
-        // Crucial invariant: Exactly 1 booking succeeded, never 2
+        // Invariant: Exactly 1 booking succeeded, never 2
         assertThat(successfulBookings).hasSize(1);
         assertThat(errors).hasSize(1);
 
@@ -352,8 +366,9 @@ public class ConcurrencyIntegrationTest {
     }
 
     @Test
-    @DisplayName("7. Persistence: Confirmed booking is retrievable with showtime and seats eagerly loaded")
-    public void testPersistence_confirmedBookingCanBeRetrievedAuthoritatively() {
+    @Order(7)
+    @DisplayName("7. Persistence: A successful booking remains retrievable from the database after transaction completes")
+    public void test07_persistence_successfulBookingRetrievableFromDatabase() {
         final Long seatId = 25L;
         final String userId = "user-persistent";
         final String idempotencyKey = "persist-key-" + UUID.randomUUID();
@@ -377,8 +392,137 @@ public class ConcurrencyIntegrationTest {
     }
 
     @Test
-    @DisplayName("8. Isolation: Contention on seat A does not block or impact unrelated seat B")
-    public void testIsolation_contentionOnOneSeatDoesNotBlockUnrelatedSeat() throws InterruptedException {
+    @Order(8)
+    @DisplayName("8. Failure handling: Failed booking operations must not leave inconsistent records or corrupt states")
+    public void test08_failureHandling_failedOperationsDoNotLeaveCorruptRecords() {
+        final Long seatId = 35L;
+        final String userId = "user-fail";
+        final String fakeToken = UUID.randomUUID().toString();
+        final String idempotencyKey = "fail-key-" + UUID.randomUUID();
+
+        // 1. Attempting to confirm without a valid hold throws HoldNotFoundOrExpiredException
+        assertThatThrownBy(() ->
+                bookingService.confirmBooking(SHOWTIME_ID, List.of(seatId), fakeToken, userId, idempotencyKey)
+        ).isInstanceOf(HoldNotFoundOrExpiredException.class);
+
+        // Verify zero booking rows or booking seats were written
+        assertThat(bookingRepository.findByUserId(userId)).isEmpty();
+        assertThat(bookingSeatRepository.findByShowtimeIdAndSeatIdInAndStatus(SHOWTIME_ID, List.of(seatId), BookingStatus.CONFIRMED)).isEmpty();
+
+        // 2. Already confirmed seat throws SeatAlreadyBookedException on second attempt
+        HoldResult validHold = holdService.createHold(SHOWTIME_ID, List.of(seatId), userId);
+        bookingService.confirmBooking(SHOWTIME_ID, List.of(seatId), validHold.holdToken(), userId, idempotencyKey);
+
+        final String anotherUser = "user-second-attempt";
+        final String anotherToken = UUID.randomUUID().toString();
+        redisTemplate.opsForValue().set("hold_owner:" + anotherToken, anotherUser, Duration.ofSeconds(60));
+        redisLockService.acquireHold(SHOWTIME_ID, seatId, anotherToken);
+
+        assertThatThrownBy(() ->
+                bookingService.confirmBooking(SHOWTIME_ID, List.of(seatId), anotherToken, anotherUser, "diff-key-" + UUID.randomUUID())
+        ).isInstanceOf(SeatAlreadyBookedException.class);
+
+        // Confirm only 1 booking row exists for the seat in database
+        assertThat(bookingSeatRepository.countByShowtimeIdAndSeatIdAndStatus(SHOWTIME_ID, seatId, BookingStatus.CONFIRMED)).isEqualTo(1);
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("9. Concurrency Lab accuracy: Race endpoint success, rejection, and overselling metrics reflect actual outcomes")
+    public void test09_concurrencyLabAccuracy_raceEndpointMetricsReflectActualResults() {
+        final Long testSeatId = 40L;
+        final int users = 50;
+
+        RaceResponse raceResponse = concurrencyLabController.simulateRace(
+                new RaceRequest(SHOWTIME_ID, testSeatId, users)
+        );
+
+        assertThat(raceResponse).isNotNull();
+        assertThat(raceResponse.showtimeId()).isEqualTo(SHOWTIME_ID);
+        assertThat(raceResponse.seatId()).isEqualTo(testSeatId);
+        assertThat(raceResponse.requestedUsers()).isEqualTo(users);
+        assertThat(raceResponse.totalAttempts()).isEqualTo(users);
+        assertThat(raceResponse.successfulHolds()).isEqualTo(1);
+        assertThat(raceResponse.rejectedHolds()).isEqualTo(users - 1);
+        assertThat(raceResponse.failedAttempts()).isEqualTo(users - 1);
+        assertThat(raceResponse.errorCount()).isEqualTo(0);
+        assertThat(raceResponse.oversellPercentage()).isEqualTo(0.0);
+        assertThat(raceResponse.attempts()).hasSize(users);
+
+        // Validate individual attempt results
+        long acquiredCount = raceResponse.attempts().stream().filter(a -> a.acquired()).count();
+        long rejectedCount = raceResponse.attempts().stream().filter(a -> !a.acquired()).count();
+        assertThat(acquiredCount).isEqualTo(1);
+        assertThat(rejectedCount).isEqualTo(users - 1);
+
+        for (var attempt : raceResponse.attempts()) {
+            assertThat(attempt.status()).isIn("ACQUIRED", "REJECTED");
+            assertThat(attempt.latencyMs()).isGreaterThanOrEqualTo(0);
+        }
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("10. Demo reset: Resetting demo data clears only intended demo state and does not corrupt unrelated records")
+    public void test10_demoReset_clearsOnlyIntendedDemoStateAndPreservesUnrelatedData() {
+        final Long demoShowtimeId = 1L;
+        final Long otherShowtimeId = 2L;
+
+        // A. Setup on Demo Showtime 1: Seat 50 has a temporary unconfirmed hold
+        final Long tempHeldSeatId = 50L;
+        final String tempUser = "user-temp-held";
+        HoldResult tempHold = holdService.createHold(demoShowtimeId, List.of(tempHeldSeatId), tempUser);
+        assertThat(tempHold).isNotNull();
+        assertThat(redisLockService.isSeatHeld(demoShowtimeId, tempHeldSeatId)).isTrue();
+
+        // B. Setup on Demo Showtime 1: Seat 51 has a confirmed booking in PostgreSQL
+        final Long confirmedSeatId = 51L;
+        final String confirmedUser = "user-confirmed-keeper";
+        final String confirmedIdempKey = "keep-key-" + UUID.randomUUID();
+        HoldResult keeperHold = holdService.createHold(demoShowtimeId, List.of(confirmedSeatId), confirmedUser);
+        Booking confirmedBooking = bookingService.confirmBooking(demoShowtimeId, List.of(confirmedSeatId), keeperHold.holdToken(), confirmedUser, confirmedIdempKey);
+        assertThat(confirmedBooking).isNotNull();
+
+        // C. Setup on Demo Showtime 2 (unrelated showtime): Seat 52 has an active hold
+        final Long otherSeatId = 52L;
+        final String otherUser = "user-other-showtime";
+        HoldResult otherHold = holdService.createHold(otherShowtimeId, List.of(otherSeatId), otherUser);
+        assertThat(otherHold).isNotNull();
+        assertThat(redisLockService.isSeatHeld(otherShowtimeId, otherSeatId)).isTrue();
+
+        // D. Execute demo reset targeting ONLY Demo Showtime 1 via controller
+        ResetDemoResponse resetResponse = concurrencyLabController.resetDemo(
+                new ResetDemoRequest(demoShowtimeId)
+        );
+
+        // E. Verify reset outcomes:
+        assertThat(resetResponse).isNotNull();
+        assertThat(resetResponse.showtimeId()).isEqualTo(demoShowtimeId);
+        assertThat(resetResponse.releasedSeatCount()).isGreaterThanOrEqualTo(1);
+
+        // Intended demo temporary hold is cleared in Redis
+        assertThat(redisLockService.isSeatHeld(demoShowtimeId, tempHeldSeatId)).isFalse();
+
+        // Confirmed booking on Demo Showtime 1 is PRESERVED in PostgreSQL
+        Booking retrievedBooking = bookingRepository.findById(confirmedBooking.getId()).orElse(null);
+        assertThat(retrievedBooking).isNotNull();
+        assertThat(retrievedBooking.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
+        long confirmedInDb = bookingSeatRepository.countByShowtimeIdAndSeatIdAndStatus(demoShowtimeId, confirmedSeatId, BookingStatus.CONFIRMED);
+        assertThat(confirmedInDb).isEqualTo(1);
+
+        // Unrelated Showtime 2 hold is UNTOUCHED and active
+        assertThat(redisLockService.isSeatHeld(otherShowtimeId, otherSeatId)).isTrue();
+
+        // F. Verify attempting to reset a non-demo showtime is strictly rejected
+        assertThatThrownBy(() -> concurrencyLabController.resetDemo(new ResetDemoRequest(999L)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Reset is only permitted on designated demo showtimes");
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("11. Isolation: Contention on seat A does not block or impact unrelated seat B")
+    public void test11_isolation_contentionOnOneSeatDoesNotBlockUnrelatedSeat() throws InterruptedException {
         final Long contendedSeat = 30L;
         final Long independentSeat = 31L;
 
@@ -430,52 +574,5 @@ public class ConcurrencyIntegrationTest {
         assertThat(rejectedContentionCount.get()).isEqualTo(attackerCount);
         assertThat(independentResults).hasSize(1);
         assertThat(independentResults.peek().seatIds()).containsExactly(independentSeat);
-    }
-
-    @Test
-    @DisplayName("9. Failure handling: Failed confirmations leave zero orphan records or dirty states")
-    public void testFailureHandling_invalidConfirmationLeavesCleanDatabaseState() {
-        final Long seatId = 35L;
-        final String userId = "user-fail";
-        final String fakeToken = UUID.randomUUID().toString();
-        final String idempotencyKey = "fail-key-" + UUID.randomUUID();
-
-        // Attempting to confirm without a valid Redis hold throws HoldNotFoundOrExpiredException
-        assertThatThrownBy(() ->
-                bookingService.confirmBooking(SHOWTIME_ID, List.of(seatId), fakeToken, userId, idempotencyKey)
-        ).isInstanceOf(HoldNotFoundOrExpiredException.class);
-
-        // Verify zero booking rows or booking seats were written
-        assertThat(bookingRepository.findByUserId(userId)).isEmpty();
-        assertThat(bookingSeatRepository.findByShowtimeIdAndSeatIdInAndStatus(SHOWTIME_ID, List.of(seatId), BookingStatus.CONFIRMED)).isEmpty();
-    }
-
-    @Test
-    @DisplayName("10. Concurrency Lab Simulation: 50 concurrent threads verify metrics and zero oversell")
-    public void testConcurrencyLabRaceSimulation_verifiesMetricsAndZeroOversell() {
-        final Long testSeatId = 40L;
-        final int users = 50;
-
-        RaceResponse raceResponse = concurrencyLabService.simulateRace(SHOWTIME_ID, testSeatId, users);
-
-        assertThat(raceResponse).isNotNull();
-        assertThat(raceResponse.requestedUsers()).isEqualTo(users);
-        assertThat(raceResponse.totalAttempts()).isEqualTo(users);
-        assertThat(raceResponse.successfulHolds()).isEqualTo(1);
-        assertThat(raceResponse.rejectedHolds()).isEqualTo(users - 1);
-        assertThat(raceResponse.errorCount()).isEqualTo(0);
-        assertThat(raceResponse.oversellPercentage()).isEqualTo(0.0);
-        assertThat(raceResponse.attempts()).hasSize(users);
-
-        // Validate individual attempt results
-        long acquiredCount = raceResponse.attempts().stream().filter(a -> a.acquired()).count();
-        long rejectedCount = raceResponse.attempts().stream().filter(a -> !a.acquired()).count();
-        assertThat(acquiredCount).isEqualTo(1);
-        assertThat(rejectedCount).isEqualTo(users - 1);
-
-        for (var attempt : raceResponse.attempts()) {
-            assertThat(attempt.status()).isIn("ACQUIRED", "REJECTED");
-            assertThat(attempt.latencyMs()).isGreaterThanOrEqualTo(0);
-        }
     }
 }
