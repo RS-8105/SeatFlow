@@ -1,0 +1,38 @@
+# Java / Maven
+target/
+*.class
+
+# Node.js / React / Vite
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+secrets/
+credentials/
+
+# Logs
+*.log
+logs/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.iml
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.swp
+*.bak

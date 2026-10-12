@@ -1,0 +1,61 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  darkMode: ['class'],
+  content: [
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        background: '#090d16',
+        card: '#111726',
+        border: '#1f293d',
+        primary: {
+          DEFAULT: '#6366f1',
+          hover: '#4f46e5',
+        },
+        accent: {
+          DEFAULT: '#ec4899',
+        },
+        held: '#f59e0b',
+        booked: '#475569',
+        available: '#10b981',
+        editorial: {
+          primary: '#ae2714',
+          'primary-container': '#d1402a',
+          'on-primary-container': '#fffafa',
+          'on-primary': '#ffffff',
+          secondary: '#576244',
+          'secondary-container': '#d8e5be',
+          'secondary-fixed': '#dbe7c1',
+          'secondary-fixed-dim': '#bfcba6',
+          tertiary: '#775600',
+          'tertiary-fixed': '#ffdea4',
+          'tertiary-fixed-dim': '#f0bf5c',
+          'tertiary-container': '#946d0c',
+          surface: '#fbf9f4',
+          'surface-lowest': '#ffffff',
+          'surface-low': '#f5f4ee',
+          'surface-container': '#efeee8',
+          'surface-high': '#e9e8e3',
+          'surface-highest': '#e4e2dd',
+          'surface-dim': '#dbdad5',
+          'surface-bright': '#fbf9f4',
+          'on-surface': '#1b1c19',
+          'on-surface-variant': '#5a413c',
+          'inverse-surface': '#30312d',
+          'inverse-on-surface': '#f2f1eb',
+          outline: '#8e706b',
+          'outline-variant': '#e2beb8',
+        },
+      },
+      fontFamily: {
+        headline: ['Newsreader', '"DM Serif Display"', 'Georgia', 'serif'],
+        sans: ['"DM Sans"', 'Inter', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', '"IBM Plex Mono"', 'monospace'],
+      },
+    },
+  },
+  plugins: [],
+};
