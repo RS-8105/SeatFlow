@@ -5,6 +5,15 @@ reliable seat reservations under concurrent traffic. It combines a React
 frontend with a Spring Boot API, PostgreSQL persistence, and
 Redis-backed temporary seat holds and coordination.
 
+## Live Demo
+
+- **Frontend:** [SeatFlow Live Application](https://seat-flow-peach.vercel.app/)
+- **Backend API:** [Spring Boot API](https://seatflow-backend-rqoy.onrender.com)
+- **Health Check:** [Backend Health Status](https://seatflow-backend-rqoy.onrender.com/actuator/health)
+- **Events API:** [Browse Events](https://seatflow-backend-rqoy.onrender.com/api/events)
+
+> **Note:** The backend is hosted on Render and may take a little time to respond after a period of inactivity. Payment processing is simulated and does not use a real payment gateway.
+
 > **Project status:** Academic / portfolio project. Payment processing
 > is simulated; do not use this project for real transactions without
 > further security, reliability, and payment-provider work.
@@ -46,9 +55,9 @@ Redis-backed temporary seat holds and coordination.
 
 ## System Architecture
 
-![SeatFlow System Architecture](docs/seatflow-architecture.png)
+![SeatFlow System Architecture](docs/seatflow-architecture.svg)
 
-For the comprehensive architecture breakdown, concurrency guarantees, and booking sequence diagram, see [`docs/architecture.md`](docs/architecture.md).
+For the detailed architecture, concurrency guarantees, and booking flow, see [`docs/architecture.md`](docs/architecture.md).
 
 ### Architecture Highlights
 - **Fast-Path Concurrency (Tier 1 Defense):** Upstash Redis with atomic Lua scripts coordinates multi-seat temporary holds (300-second TTL), enforcing mutual exclusion and user quota limits (maximum 6 seats per user) before touching persistent storage.
