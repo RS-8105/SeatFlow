@@ -1,0 +1,119 @@
+sequenceDiagram
+    autonumber
+    actor Patron as Patron Browser (React)
+    participant Edge as Render Router
+    participant API as Spring Boot API
+    participant Redis as Upstash Redis (Lua/Cache)
+    participant PubSub as Redis Pub/Sub
+    participant DB as Neon PostgreSQL (HikariCP)
+    actor OtherPatrons as Other Connected Clients
+
+    %% -------------------------------------------------------------------------
+    %% 1. DISCOVERY & REAL-TIME SUBSCRIPTION
+    %% -------------------------------------------------------------------------
+    rect rgb(240, 249, 255)
+        Note over Patron, OtherPatrons: Phase 1: Catalogue Discovery & Real-Time SSE Subscription
+        Patron->>Edge: GET /api/showtimes/{id}/seats (HTTPS)
+        Edge->>API: Route to ShowtimeController
+        API->>DB: Query catalog & confirmed booking_seats
+        API->>Redis: Probe active seat_hold:* keys
+        API-->>Patron: 200 OK (Seats with AVAILABLE / HELD / BOOKED status)
+
+        Patron->>Edge: GET /api/showtimes/{id}/stream (EventSource SSE)
+        Edge->>API: ShowtimeController.streamSeatUpdates()
+        API->>API: SseBroadcastService registers SseEmitter for showtimeId
+        API-->>Patron: event: connected (200 OK text/event-stream)
+    end
+
+    %% -------------------------------------------------------------------------
+    %% 2. ATOMIC MULTI-SEAT HOLD ACQUISITION
+    %% -------------------------------------------------------------------------
+    rect rgb(254, 242, 242)
+        Note over Patron, Redis: Phase 2: Atomic Multi-Seat Temporary Hold (Lua Script)
+        Patron->>Edge: POST /api/showtimes/{id}/holds {seatIds: [10, 11]} (Auth JWT)
+        Edge->>API: ShowtimeController.createHold()
+        API->>API: HoldService validates quota (seatCount <= 6, no duplicates)
+        API->>DB: Verify seats exist and belong to showtime venue
+        API->>DB: Verify seats are not already CONFIRMED in booking_seats
+        API->>Redis: Execute ATOMIC_MULTI_ACQUIRE_SCRIPT (KEYS: seat_hold:{id}:{seat}, ARGV: token, 300s)
+        
+        alt Seat Already Held by Competitor
+            Redis-->>API: Returns 0 (Conflict detected)
+            API-->>Patron: 409 Conflict ("SeatAlreadyHeldException")
+        else All Seats Free
+            Redis-->>API: Returns 1 (Atomic all-or-nothing hold succeeded)
+            API->>Redis: SET hold_owner:{token} = userId (TTL: 300s)
+            API->>PubSub: PUBLISH 'showtime:seat-events' {seatId, status: 'HELD', expiresAt}
+            PubSub-->>API: MessageListenerContainer receives event
+            API->>Patron: SSE event: seat-update (status: HELD)
+            API->>OtherPatrons: SSE event: seat-update (status: HELD)
+            API-->>Patron: 201 Created {holdToken: UUID, expiresAt: T+300s}
+        end
+    end
+
+    %% -------------------------------------------------------------------------
+    %% 3. IDEMPOTENT BOOKING CONFIRMATION
+    %% -------------------------------------------------------------------------
+    rect rgb(240, 253, 244)
+        Note over Patron, DB: Phase 3: Idempotent Booking Confirmation & DB Transaction
+        Patron->>Edge: POST /api/holds/confirm (Header: Idempotency-Key, Body: {holdToken, seatIds})
+        Edge->>API: BookingController.confirmHold()
+        API->>DB: Check bookings by idempotency_key
+        opt Idempotency Key Exists
+            API-->>Patron: 200 OK (Return existing booking without re-executing)
+        end
+        API->>Redis: Validate hold ownership (hold_owner:{token} == userId && seat_hold:* == token)
+        API->>DB: Begin @Transactional block
+        API->>DB: Insert into bookings (status: CONFIRMED, idempotency_key, total_amount)
+        API->>DB: Insert into booking_seats (status: CONFIRMED)
+        Note over DB: Guarded by partial unique index idx_unique_confirmed_seat_showtime
+        DB-->>API: Transaction Committed Successfully
+        
+        Note over API: TransactionSynchronization.afterCommit() Triggered
+        API->>Redis: holdService.releaseHold() (Deletes seat_hold and hold_owner keys)
+        API->>PubSub: PUBLISH 'showtime:seat-events' {seatId, status: 'BOOKED'}
+        PubSub-->>API: MessageListenerContainer receives event
+        API->>Patron: SSE event: seat-update (status: BOOKED)
+        API->>OtherPatrons: SSE event: seat-update (status: BOOKED)
+        API-->>Patron: 201 Created (BookingResponse with booking ID & total amount)
+    end
+
+    %% -------------------------------------------------------------------------
+    %% 4. DETERMINISTIC PAYMENT SIMULATION
+    %% -------------------------------------------------------------------------
+    rect rgb(250, 245, 255)
+        Note over Patron, DB: Phase 4: Deterministic Payment Simulation (Simulated, Not a Gateway)
+        Patron->>Edge: POST /api/bookings/{id}/payment {simulateSuccess: true} (Auth JWT)
+        Edge->>API: BookingController.payForBooking()
+        API->>DB: Begin @Transactional block
+        API->>DB: SELECT * FROM bookings WHERE id = ? FOR UPDATE (Pessimistic Row Lock)
+        API->>DB: Check existing successful payments for booking (Idempotency check)
+        opt Successful Payment Already Present
+            API-->>Patron: 200 OK (Return existing Payment without duplicate charge)
+        end
+        API->>DB: Insert into payments (booking_id, status: SUCCESS, simulated: true)
+        Note over DB: Guarded by partial unique index idx_unique_successful_payment_booking
+        DB-->>API: Transaction Committed
+        API-->>Patron: 201 Created (PaymentResponse: SUCCESS)
+    end
+
+    %% -------------------------------------------------------------------------
+    %% 5. BOOKING CANCELLATION & SEAT RESTORATION
+    %% -------------------------------------------------------------------------
+    rect rgb(255, 251, 235)
+        Note over Patron, OtherPatrons: Phase 5: Booking Cancellation & Dynamic Seat Restoration
+        Patron->>Edge: POST /api/bookings/{id}/cancel (Auth JWT)
+        Edge->>API: BookingController.cancelBooking()
+        API->>DB: Begin @Transactional block
+        API->>DB: SELECT * FROM bookings WHERE id = ? FOR UPDATE
+        API->>DB: Update bookings SET status = 'CANCELLED'
+        API->>DB: Update booking_seats SET status = 'CANCELLED'
+        DB-->>API: Transaction Committed
+        
+        Note over API: TransactionSynchronization.afterCommit() Triggered
+        API->>PubSub: PUBLISH 'showtime:seat-events' {seatId, status: 'AVAILABLE'}
+        PubSub-->>API: MessageListenerContainer receives event
+        API->>Patron: SSE event: seat-update (status: AVAILABLE)
+        API->>OtherPatrons: SSE event: seat-update (status: AVAILABLE)
+        API-->>Patron: 200 OK (Cancelled BookingResponse)
+    end

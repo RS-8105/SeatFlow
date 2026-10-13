@@ -1,0 +1,497 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 980" width="1440" height="980" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="canvas-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0f1d"/>
+      <stop offset="50%" stop-color="#0e172a"/>
+      <stop offset="100%" stop-color="#080d1a"/>
+    </linearGradient>
+
+    <!-- Card Background Gradients -->
+    <linearGradient id="client-card-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#022c22" stop-opacity="0.7"/>
+    </linearGradient>
+    <linearGradient id="backend-card-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#0c4a6e" stop-opacity="0.6"/>
+    </linearGradient>
+    <linearGradient id="redis-card-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#881337" stop-opacity="0.6"/>
+    </linearGradient>
+    <linearGradient id="db-card-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#3b0764" stop-opacity="0.6"/>
+    </linearGradient>
+
+    <!-- Component Box Gradients -->
+    <linearGradient id="subcard-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="accent-gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="glow-card" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#020617" flood-opacity="0.6"/>
+    </filter>
+    <filter id="badge-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#38bdf8" flood-opacity="0.3"/>
+    </filter>
+
+    <!-- Arrow Markers -->
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"/>
+    </marker>
+    <marker id="arrow-rose" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#f43f5e"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#c084fc"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#fbbf24"/>
+    </marker>
+
+    <!-- Blueprint Grid -->
+    <pattern id="grid-pattern" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="1.5" cy="1.5" r="1" fill="#334155" opacity="0.25"/>
+    </pattern>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1440" height="980" fill="url(#canvas-bg)"/>
+  <rect width="1440" height="980" fill="url(#grid-pattern)"/>
+
+  <!-- ========================================================================= -->
+  <!-- HEADER SECTION -->
+  <!-- ========================================================================= -->
+  <g transform="translate(50, 24)">
+    <!-- Badge -->
+    <rect x="0" y="0" width="380" height="26" rx="13" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2" filter="url(#badge-glow)"/>
+    <circle cx="14" cy="13" r="4" fill="#10b981"/>
+    <text x="28" y="17" font-size="11" font-weight="700" fill="#38bdf8" letter-spacing="1.5">SEATFLOW &#x2022; PRODUCTION SYSTEM ARCHITECTURE</text>
+
+    <!-- Main Title -->
+    <text x="0" y="58" font-size="28" font-weight="800" fill="#f8fafc" letter-spacing="-0.5">High-Concurrency Ticket Booking Engine</text>
+    <text x="0" y="78" font-size="13.5" font-weight="400" fill="#94a3b8">
+      Defense-in-Depth Concurrency Control &#x2022; Atomic Redis Lua Multi-Seat Holds &#x2022; Reactive SSE Streaming &#x2022; PostgreSQL Partial Unique Constraints
+    </text>
+
+    <!-- Live Cloud Deployment Tags -->
+    <g transform="translate(980, 8)">
+      <rect x="0" y="0" width="360" height="62" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+      <text x="16" y="22" font-size="11" font-weight="700" fill="#64748b" letter-spacing="1">DEPLOYMENT TOPOLOGY</text>
+      <circle cx="22" cy="42" r="4" fill="#10b981"/>
+      <text x="32" y="46" font-size="12" font-weight="600" fill="#f8fafc">Vercel (SPA)</text>
+      <circle cx="126" cy="42" r="4" fill="#38bdf8"/>
+      <text x="136" y="46" font-size="12" font-weight="600" fill="#f8fafc">Render (API)</text>
+      <circle cx="232" cy="42" r="4" fill="#c084fc"/>
+      <text x="242" y="46" font-size="12" font-weight="600" fill="#f8fafc">Neon &#x2022; Upstash</text>
+    </g>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- 1. FRONTEND TIER (VERCEL) -->
+  <!-- ========================================================================= -->
+  <g transform="translate(50, 125)" filter="url(#glow-card)">
+    <!-- Tier Boundary Card -->
+    <rect width="380" height="395" rx="16" fill="url(#client-card-bg)" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.7"/>
+    <rect width="380" height="42" rx="16" fill="#064e3b" fill-opacity="0.5"/>
+    <path d="M 0 42 L 380 42" stroke="#10b981" stroke-width="1" stroke-opacity="0.4"/>
+    
+    <text x="18" y="26" font-size="13" font-weight="800" fill="#a7f3d0" letter-spacing="0.8">1. CLIENT &amp; PRESENTATION TIER</text>
+    <rect x="285" y="11" width="78" height="20" rx="6" fill="#065f46"/>
+    <text x="295" y="25" font-size="10" font-weight="700" fill="#34d399">VERCEL CDN</text>
+
+    <!-- Subcomponent: React 18 / Vite SPA -->
+    <g transform="translate(18, 56)">
+      <rect width="344" height="62" rx="10" fill="url(#subcard-bg)" stroke="#334155" stroke-width="1"/>
+      <text x="14" y="24" font-size="13" font-weight="700" fill="#f8fafc">React 18 &#x2022; Vite SPA</text>
+      <text x="14" y="44" font-size="11" fill="#94a3b8">Domain: seat-flow-peach.vercel.app &#x2022; Client Routing</text>
+      <rect x="265" y="12" width="65" height="18" rx="4" fill="#1e293b" stroke="#10b981" stroke-width="0.8"/>
+      <text x="273" y="25" font-size="9.5" font-weight="600" fill="#34d399">HTTPS/2</text>
+    </g>
+
+    <!-- Subcomponent: TanStack Query & Router -->
+    <g transform="translate(18, 128)">
+      <rect width="344" height="72" rx="10" fill="url(#subcard-bg)" stroke="#334155" stroke-width="1"/>
+      <text x="14" y="24" font-size="13" font-weight="700" fill="#f8fafc">State &amp; Cache Management</text>
+      <text x="14" y="42" font-size="11" fill="#cbd5e1">&#x2022; TanStack React Query v5 (Optimistic UI &amp; Invalidation)</text>
+      <text x="14" y="58" font-size="11" fill="#cbd5e1">&#x2022; React Router v6 (Public Catalogue &amp; Protected Booking)</text>
+    </g>
+
+    <!-- Subcomponent: Fetch API Client -->
+    <g transform="translate(18, 210)">
+      <rect width="344" height="80" rx="10" fill="url(#subcard-bg)" stroke="#334155" stroke-width="1"/>
+      <text x="14" y="24" font-size="13" font-weight="700" fill="#f8fafc">API Client (fetch wrapper)</text>
+      <text x="14" y="44" font-size="11" fill="#94a3b8">src/lib/api-client.js</text>
+      <text x="14" y="62" font-size="11" fill="#38bdf8">&#x2022; Authorization: Bearer &lt;JWT&gt; (localStorage)</text>
+      <text x="14" y="75" font-size="11" fill="#f59e0b">&#x2022; Idempotency-Key: &lt;UUID&gt; (Checkout Header)</text>
+    </g>
+
+    <!-- Subcomponent: Native EventSource -->
+    <g transform="translate(18, 300)">
+      <rect width="344" height="74" rx="10" fill="url(#subcard-bg)" stroke="#10b981" stroke-width="1.2" stroke-dasharray="4 3"/>
+      <text x="14" y="24" font-size="13" font-weight="700" fill="#34d399">Native EventSource Listener (SSE)</text>
+      <text x="14" y="44" font-size="11" fill="#cbd5e1">&#x2022; Stream: /api/showtimes/{id}/stream</text>
+      <text x="14" y="60" font-size="11" fill="#cbd5e1">&#x2022; Events: 'connected', 'seat-update' (Reactive Seat Map)</text>
+    </g>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- 2. BACKEND API TIER (RENDER / SPRING BOOT) -->
+  <!-- ========================================================================= -->
+  <g transform="translate(490, 125)" filter="url(#glow-card)">
+    <!-- Tier Boundary Card -->
+    <rect width="900" height="395" rx="16" fill="url(#backend-card-bg)" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.7"/>
+    <rect width="900" height="42" rx="16" fill="#075985" fill-opacity="0.4"/>
+    <path d="M 0 42 L 900 42" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.4"/>
+    
+    <text x="20" y="26" font-size="13" font-weight="800" fill="#bae6fd" letter-spacing="0.8">2. BACKEND API &amp; APPLICATION TIER</text>
+    <rect x="680" y="11" width="200" height="20" rx="6" fill="#0369a1"/>
+    <text x="690" y="25" font-size="10" font-weight="700" fill="#e0f2fe">RENDER &#x2022; DOCKER &#x2022; JAVA 21</text>
+
+    <!-- Column A: Security & Ingress Pipeline -->
+    <g transform="translate(20, 56)">
+      <rect width="270" height="320" rx="12" fill="url(#subcard-bg)" stroke="#334155" stroke-width="1"/>
+      <rect width="270" height="30" rx="12" fill="#1e293b"/>
+      <text x="14" y="20" font-size="11.5" font-weight="700" fill="#38bdf8" letter-spacing="0.5">SECURITY &amp; INGRESS PIPELINE</text>
+
+      <g transform="translate(12, 42)">
+        <!-- CORS Box -->
+        <rect width="246" height="76" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="10" y="20" font-size="12" font-weight="700" fill="#f8fafc">CORS Filter Configuration</text>
+        <text x="10" y="38" font-size="10" fill="#94a3b8">Allowed: https://seat-flow-peach.vercel.app</text>
+        <text x="10" y="52" font-size="10" fill="#94a3b8">Headers: Authorization, Idempotency-Key</text>
+        <text x="10" y="66" font-size="10" fill="#10b981">&#x2022; Non-wildcard origin credentials allowed</text>
+      </g>
+
+      <g transform="translate(12, 128)">
+        <!-- JWT Auth Filter -->
+        <rect width="246" height="82" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="10" y="20" font-size="12" font-weight="700" fill="#f8fafc">JwtAuthenticationFilter</text>
+        <text x="10" y="38" font-size="10" fill="#94a3b8">&#x2022; JJWT 0.12.6 HMAC-SHA256 Token Parser</text>
+        <text x="10" y="54" font-size="10" fill="#94a3b8">&#x2022; CustomUserDetailsService integration</text>
+        <text x="10" y="70" font-size="10" fill="#38bdf8">&#x2022; Stateless SecurityContextHolder setup</text>
+      </g>
+
+      <g transform="translate(12, 220)">
+        <!-- Route Authorization -->
+        <rect width="246" height="86" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="10" y="18" font-size="12" font-weight="700" fill="#f8fafc">SecurityFilterChain Matchers</text>
+        <text x="10" y="36" font-size="10" fill="#34d399">PERMIT ALL: /api/events, /stream, /auth</text>
+        <text x="10" y="52" font-size="10" fill="#f59e0b">AUTHENTICATED: /api/holds/**</text>
+        <text x="10" y="68" font-size="10" fill="#f59e0b">AUTHENTICATED: /api/bookings/**</text>
+        <text x="10" y="82" font-size="10" fill="#64748b">BCryptPasswordEncoder (Cost: 10)</text>
+      </g>
+    </g>
+
+    <!-- Column B: REST Controllers & Orchestration -->
+    <g transform="translate(310, 56)">
+      <rect width="270" height="320" rx="12" fill="url(#subcard-bg)" stroke="#334155" stroke-width="1"/>
+      <rect width="270" height="30" rx="12" fill="#1e293b"/>
+      <text x="14" y="20" font-size="11.5" font-weight="700" fill="#38bdf8" letter-spacing="0.5">REST CONTROLLERS &amp; SERVICES</text>
+
+      <g transform="translate(12, 42)">
+        <rect width="246" height="52" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="10" y="18" font-size="11.5" font-weight="700" fill="#f8fafc">Event &amp; Showtime Controller</text>
+        <text x="10" y="34" font-size="10" fill="#94a3b8">/api/events &#x2022; /api/showtimes/{id}/seats</text>
+        <text x="10" y="46" font-size="10" fill="#38bdf8">Seat state: DB + Redis hold merge</text>
+      </g>
+
+      <g transform="translate(12, 102)">
+        <rect width="246" height="62" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="10" y="18" font-size="11.5" font-weight="700" fill="#f8fafc">HoldController &amp; HoldService</text>
+        <text x="10" y="34" font-size="10" fill="#f43f5e">POST /api/showtimes/{id}/holds &#x2022; DELETE /holds</text>
+        <text x="10" y="48" font-size="10" fill="#f59e0b">&#x2022; Enforces max 6 seats/user limit</text>
+        <text x="10" y="58" font-size="10" fill="#94a3b8">&#x2022; UUID holdToken generation</text>
+      </g>
+
+      <g transform="translate(12, 172)">
+        <rect width="246" height="66" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="10" y="18" font-size="11.5" font-weight="700" fill="#f8fafc">BookingController &amp; Service</text>
+        <text x="10" y="34" font-size="10" fill="#94a3b8">POST /api/holds/confirm (Idempotent)</text>
+        <text x="10" y="48" font-size="10" fill="#10b981">&#x2022; Checks idempotency_key in DB</text>
+        <text x="10" y="60" font-size="10" fill="#38bdf8">&#x2022; POST /api/bookings/{id}/cancel</text>
+      </g>
+
+      <g transform="translate(12, 246)">
+        <rect width="246" height="62" rx="8" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="10" y="18" font-size="11.5" font-weight="700" fill="#f8fafc">Payment &amp; Demo Controllers</text>
+        <text x="10" y="34" font-size="10" fill="#c084fc">POST /api/bookings/{id}/payment (Simulated)</text>
+        <text x="10" y="48" font-size="10" fill="#94a3b8">POST /api/demo/race (Concurrency Lab)</text>
+        <text x="10" y="58" font-size="9.5" fill="#f59e0b">Note: Internal deterministic simulation</text>
+      </g>
+    </g>
+
+    <!-- Column C: Transaction Boundaries & Reactive Schedulers -->
+    <g transform="translate(600, 56)">
+      <rect width="280" height="320" rx="12" fill="url(#subcard-bg)" stroke="#334155" stroke-width="1"/>
+      <rect width="280" height="30" rx="12" fill="#1e293b"/>
+      <text x="14" y="20" font-size="11.5" font-weight="700" fill="#38bdf8" letter-spacing="0.5">TRANSACTIONS &amp; REACTIVE ENGINE</text>
+
+      <g transform="translate(12, 42)">
+        <rect width="256" height="80" rx="8" fill="#0f172a" stroke="#10b981" stroke-width="1.2"/>
+        <text x="10" y="18" font-size="12" font-weight="700" fill="#34d399">TransactionalBookingWriter</text>
+        <text x="10" y="34" font-size="10" fill="#cbd5e1">&#x2022; @Transactional(rollbackFor = Exception.class)</text>
+        <text x="10" y="50" font-size="10" fill="#cbd5e1">&#x2022; TransactionSynchronizationManager</text>
+        <text x="10" y="64" font-size="10" fill="#f59e0b">&#x2022; afterCommit(): Releases Redis Holds &amp;</text>
+        <text x="10" y="76" font-size="10" fill="#10b981">  broadcasts 'BOOKED' via Redis Pub/Sub</text>
+      </g>
+
+      <g transform="translate(12, 130)">
+        <rect width="256" height="74" rx="8" fill="#0f172a" stroke="#c084fc" stroke-width="1.2"/>
+        <text x="10" y="18" font-size="12" font-weight="700" fill="#e9d5ff">TransactionalPaymentWriter</text>
+        <text x="10" y="34" font-size="10" fill="#cbd5e1">&#x2022; Pessimistic Lock: findByIdWithLock(id)</text>
+        <text x="10" y="48" font-size="10" fill="#c084fc">&#x2022; SQL: SELECT * FROM bookings FOR UPDATE</text>
+        <text x="10" y="62" font-size="10" fill="#cbd5e1">&#x2022; Prevents duplicate payment execution</text>
+      </g>
+
+      <g transform="translate(12, 212)">
+        <rect width="256" height="94" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="1"/>
+        <text x="10" y="18" font-size="12" font-weight="700" fill="#38bdf8">SseBroadcastService &amp; Schedulers</text>
+        <text x="10" y="34" font-size="10" fill="#cbd5e1">&#x2022; ConcurrentHashMap&lt;Long, List&lt;SseEmitter&gt;&gt;</text>
+        <text x="10" y="48" font-size="10" fill="#cbd5e1">&#x2022; Heartbeat: SseEmitter.comment('ping') (15s)</text>
+        <text x="10" y="64" font-size="10" fill="#f59e0b">&#x2022; HoldExpiryReconciliationScheduler (30s)</text>
+        <text x="10" y="78" font-size="9.5" fill="#94a3b8">  Audits Redis keys &amp; auto-broadcasts AVAILABLE</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- 3. REAL-TIME CONCURRENCY & CACHE TIER (UPSTASH REDIS) -->
+  <!-- ========================================================================= -->
+  <g transform="translate(50, 540)" filter="url(#glow-card)">
+    <rect width="640" height="350" rx="16" fill="url(#redis-card-bg)" stroke="#f43f5e" stroke-width="1.5" stroke-opacity="0.7"/>
+    <rect width="640" height="42" rx="16" fill="#881337" fill-opacity="0.5"/>
+    <path d="M 0 42 L 640 42" stroke="#f43f5e" stroke-width="1" stroke-opacity="0.4"/>
+    
+    <text x="20" y="26" font-size="13" font-weight="800" fill="#fecdd3" letter-spacing="0.8">3. FAST-PATH CONCURRENCY &amp; CACHE TIER</text>
+    <rect x="445" y="11" width="175" height="20" rx="6" fill="#9f1239"/>
+    <text x="455" y="25" font-size="10" font-weight="700" fill="#ffe4e6">UPSTASH REDIS &#x2022; TLS 6379</text>
+
+    <!-- Highlight Banner: Tier 1 Defense -->
+    <g transform="translate(20, 54)">
+      <rect width="600" height="28" rx="6" fill="#4c0519" stroke="#f43f5e" stroke-width="1"/>
+      <text x="14" y="18" font-size="11" font-weight="700" fill="#fb7185">
+        TIER 1 CONCURRENCY DEFENSE: Sub-millisecond mutual exclusion before hitting database
+      </text>
+    </g>
+
+    <!-- Sub-block 1: Atomic Lua Scripts -->
+    <g transform="translate(20, 92)">
+      <rect width="290" height="238" rx="10" fill="url(#subcard-bg)" stroke="#334155" stroke-width="1"/>
+      <text x="14" y="24" font-size="12" font-weight="700" fill="#f43f5e">ATOMIC REDIS LUA SCRIPTS</text>
+      
+      <g transform="translate(10, 36)">
+        <rect width="270" height="56" rx="6" fill="#0f172a" stroke="#f43f5e" stroke-width="0.8"/>
+        <text x="8" y="16" font-size="10.5" font-weight="700" fill="#f8fafc">ATOMIC_MULTI_ACQUIRE_SCRIPT</text>
+        <text x="8" y="32" font-size="9.5" fill="#94a3b8">Checks all seat_hold keys atomically.</text>
+        <text x="8" y="46" font-size="9.5" fill="#34d399">All-or-nothing: returns 0 if any held, else sets all.</text>
+      </g>
+
+      <g transform="translate(10, 100)">
+        <rect width="270" height="44" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="8" y="16" font-size="10.5" font-weight="700" fill="#f8fafc">COMPARE_AND_DELETE_SCRIPT</text>
+        <text x="8" y="32" font-size="9.5" fill="#94a3b8">Verifies holdToken ownership before del(key).</text>
+      </g>
+
+      <g transform="translate(10, 152)">
+        <rect width="270" height="44" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="8" y="16" font-size="10.5" font-weight="700" fill="#f8fafc">RELEASE_HOLD_WITH_OWNER_SCRIPT</text>
+        <text x="8" y="32" font-size="9.5" fill="#94a3b8">Atomic hold deletion + Pub/Sub notify.</text>
+      </g>
+
+      <g transform="translate(10, 202)">
+        <rect width="270" height="28" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="8" y="18" font-size="9.5" font-weight="600" fill="#fbbf24">PUBLISH_AVAILABLE_IF_UNHELD_SCRIPT</text>
+      </g>
+    </g>
+
+    <!-- Sub-block 2: Key Structure & Pub/Sub -->
+    <g transform="translate(330, 92)">
+      <rect width="290" height="238" rx="10" fill="url(#subcard-bg)" stroke="#334155" stroke-width="1"/>
+      <text x="14" y="24" font-size="12" font-weight="700" fill="#f8fafc">IN-MEMORY STATE &amp; PUB/SUB BUS</text>
+
+      <g transform="translate(10, 36)">
+        <rect width="270" height="56" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="8" y="16" font-size="10.5" font-weight="700" fill="#fb7185">seat_hold:{showtime}:{seat}</text>
+        <text x="8" y="32" font-size="9.5" fill="#94a3b8">Value: UUID holdToken string</text>
+        <text x="8" y="46" font-size="9.5" fill="#f59e0b">TTL: 300 seconds (automatic expiration)</text>
+      </g>
+
+      <g transform="translate(10, 100)">
+        <rect width="270" height="50" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="8" y="16" font-size="10.5" font-weight="700" fill="#fb7185">hold_owner:{holdToken}</text>
+        <text x="8" y="32" font-size="9.5" fill="#94a3b8">Value: canonical userId string</text>
+        <text x="8" y="44" font-size="9.5" fill="#f59e0b">TTL: 300 seconds</text>
+      </g>
+
+      <g transform="translate(10, 158)">
+        <rect width="270" height="72" rx="6" fill="#0f172a" stroke="#10b981" stroke-width="1.2"/>
+        <text x="8" y="18" font-size="11" font-weight="700" fill="#34d399">Redis Topic: 'showtime:seat-events'</text>
+        <text x="8" y="34" font-size="9.5" fill="#cbd5e1">&#x2022; Message: SeatStateEvent (JSON)</text>
+        <text x="8" y="48" font-size="9.5" fill="#cbd5e1">&#x2022; Listener: RedisMessageListenerContainer</text>
+        <text x="8" y="62" font-size="9.5" fill="#38bdf8">&#x2022; Connect &amp; Command Timeout: 10000ms</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- 4. DURABLE PERSISTENCE TIER (NEON POSTGRESQL) -->
+  <!-- ========================================================================= -->
+  <g transform="translate(720, 540)" filter="url(#glow-card)">
+    <rect width="670" height="350" rx="16" fill="url(#db-card-bg)" stroke="#c084fc" stroke-width="1.5" stroke-opacity="0.7"/>
+    <rect width="670" height="42" rx="16" fill="#581c87" fill-opacity="0.5"/>
+    <path d="M 0 42 L 670 42" stroke="#c084fc" stroke-width="1" stroke-opacity="0.4"/>
+    
+    <text x="20" y="26" font-size="13" font-weight="800" fill="#f3e8ff" letter-spacing="0.8">4. DURABLE PERSISTENT STORAGE TIER</text>
+    <rect x="440" y="11" width="210" height="20" rx="6" fill="#7e22ce"/>
+    <text x="450" y="25" font-size="10" font-weight="700" fill="#faf5ff">NEON POSTGRESQL 16 &#x2022; SSL</text>
+
+    <!-- Highlight Banner: Tier 2 Defense -->
+    <g transform="translate(20, 54)">
+      <rect width="630" height="28" rx="6" fill="#3b0764" stroke="#c084fc" stroke-width="1"/>
+      <text x="14" y="18" font-size="11" font-weight="700" fill="#e9d5ff">
+        TIER 2 CONCURRENCY DEFENSE: Relational engine barriers guarantee zero duplicate bookings
+      </text>
+    </g>
+
+    <!-- Sub-block 1: Relational Schema & Flyway -->
+    <g transform="translate(20, 92)">
+      <rect width="300" height="238" rx="10" fill="url(#subcard-bg)" stroke="#334155" stroke-width="1"/>
+      <text x="14" y="24" font-size="12" font-weight="700" fill="#e9d5ff">RELATIONAL LEDGER &amp; MIGRATIONS</text>
+
+      <g transform="translate(10, 36)">
+        <rect width="280" height="48" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="8" y="16" font-size="10.5" font-weight="700" fill="#f8fafc">Catalogue Tables</text>
+        <text x="8" y="32" font-size="9.5" fill="#94a3b8">events, venues, showtimes, seats</text>
+        <text x="8" y="44" font-size="9.5" fill="#38bdf8">uq_venue_seat (venue_id, row, seat_number)</text>
+      </g>
+
+      <g transform="translate(10, 92)">
+        <rect width="280" height="48" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="8" y="16" font-size="10.5" font-weight="700" fill="#f8fafc">Identity &amp; Credentials (V4)</text>
+        <text x="8" y="32" font-size="9.5" fill="#94a3b8">users (username UNIQUE, email UNIQUE)</text>
+        <text x="8" y="44" font-size="9.5" fill="#64748b">password_hash (Salted BCrypt)</text>
+      </g>
+
+      <g transform="translate(10, 148)">
+        <rect width="280" height="78" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="8" y="18" font-size="10.5" font-weight="700" fill="#f8fafc">HikariCP Connection Pool</text>
+        <text x="8" y="34" font-size="9.5" fill="#cbd5e1">&#x2022; maximum-pool-size: 30</text>
+        <text x="8" y="48" font-size="9.5" fill="#cbd5e1">&#x2022; connection-timeout: 20000ms</text>
+        <text x="8" y="62" font-size="9.5" fill="#cbd5e1">&#x2022; minimum-idle: 10</text>
+        <text x="8" y="74" font-size="9.5" fill="#10b981">&#x2022; SSL JDBC Mode (Neon serverless)</text>
+      </g>
+    </g>
+
+    <!-- Sub-block 2: Engine-Level Constraints -->
+    <g transform="translate(340, 92)">
+      <rect width="310" height="238" rx="10" fill="url(#subcard-bg)" stroke="#c084fc" stroke-width="1.2"/>
+      <text x="14" y="24" font-size="12" font-weight="700" fill="#f3e8ff">PARTIAL UNIQUE INDEX DEFENSES</text>
+
+      <g transform="translate(10, 36)">
+        <rect width="290" height="66" rx="6" fill="#0f172a" stroke="#c084fc" stroke-width="1"/>
+        <text x="8" y="16" font-size="10" font-weight="700" fill="#e9d5ff">idx_unique_confirmed_seat_showtime</text>
+        <text x="8" y="32" font-size="9.5" fill="#f59e0b">ON booking_seats (showtime_id, seat_id)</text>
+        <text x="8" y="46" font-size="9.5" font-weight="700" fill="#34d399">WHERE status = 'CONFIRMED'</text>
+        <text x="8" y="58" font-size="9" fill="#94a3b8">PHYSICAL BARRIER: Zero double confirmed seats</text>
+      </g>
+
+      <g transform="translate(10, 110)">
+        <rect width="290" height="56" rx="6" fill="#0f172a" stroke="#c084fc" stroke-width="1"/>
+        <text x="8" y="16" font-size="10" font-weight="700" fill="#e9d5ff">idx_unique_successful_payment_booking</text>
+        <text x="8" y="32" font-size="9.5" fill="#f59e0b">ON payments (booking_id)</text>
+        <text x="8" y="46" font-size="9.5" font-weight="700" fill="#34d399">WHERE status = 'SUCCESS' (V3 Migration)</text>
+      </g>
+
+      <g transform="translate(10, 174)">
+        <rect width="290" height="52" rx="6" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <text x="8" y="16" font-size="10.5" font-weight="700" fill="#f8fafc">bookings.idempotency_key UNIQUE</text>
+        <text x="8" y="32" font-size="9.5" fill="#cbd5e1">Prevents duplicate booking creation on client retry.</text>
+        <text x="8" y="46" font-size="9.5" fill="#38bdf8">Safe HTTP retry semantics</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- DIRECTIONAL CONNECTORS & LABELED FLOWS -->
+  <!-- ========================================================================= -->
+
+  <!-- Flow 1: Frontend -> Backend (REST API / HTTPS) -->
+  <g>
+    <path d="M 430 250 L 490 250" fill="none" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#arrow-blue)"/>
+    <rect x="438" y="226" width="44" height="18" rx="4" fill="#0f172a" stroke="#38bdf8" stroke-width="0.8"/>
+    <text x="442" y="239" font-size="9.5" font-weight="700" fill="#38bdf8">HTTPS</text>
+  </g>
+
+  <!-- Flow 2: Backend -> Frontend (SSE text/event-stream) -->
+  <g>
+    <path d="M 490 380 L 430 380" fill="none" stroke="#10b981" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#arrow-green)"/>
+    <rect x="442" y="366" width="36" height="18" rx="4" fill="#0f172a" stroke="#10b981" stroke-width="0.8"/>
+    <text x="446" y="379" font-size="9.5" font-weight="700" fill="#34d399">SSE</text>
+  </g>
+
+  <!-- Flow 3: Backend -> Redis (Lua Script Holds) -->
+  <g>
+    <path d="M 650 520 L 650 540" fill="none" stroke="#f43f5e" stroke-width="2.5" marker-end="url(#arrow-rose)"/>
+    <rect x="595" y="522" width="110" height="16" rx="4" fill="#0f172a" stroke="#f43f5e" stroke-width="0.8"/>
+    <text x="602" y="534" font-size="9" font-weight="700" fill="#fb7185">TLS 6379 &#x2022; Lua Holds</text>
+  </g>
+
+  <!-- Flow 4: Redis Pub/Sub -> Backend (Topic Fanout) -->
+  <g>
+    <path d="M 380 540 L 380 520 L 510 520" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrow-amber)"/>
+    <rect x="395" y="512" width="95" height="16" rx="4" fill="#0f172a" stroke="#fbbf24" stroke-width="0.8"/>
+    <text x="401" y="524" font-size="9" font-weight="700" fill="#f59e0b">Pub/Sub &#x2022; SSE Fanout</text>
+  </g>
+
+  <!-- Flow 5: Backend -> PostgreSQL (SQL / HikariCP) -->
+  <g>
+    <path d="M 1050 520 L 1050 540" fill="none" stroke="#c084fc" stroke-width="2.5" marker-end="url(#arrow-purple)"/>
+    <rect x="990" y="522" width="120" height="16" rx="4" fill="#0f172a" stroke="#c084fc" stroke-width="0.8"/>
+    <text x="998" y="534" font-size="9" font-weight="700" fill="#e9d5ff">SQL JDBC &#x2022; Row Locks</text>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- FOOTER & PROTOCOL LEGEND -->
+  <!-- ========================================================================= -->
+  <g transform="translate(50, 910)">
+    <rect width="1340" height="48" rx="10" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+
+    <text x="18" y="29" font-size="11" font-weight="700" fill="#64748b" letter-spacing="1">PROTOCOL LEGEND:</text>
+
+    <!-- HTTPS Badge -->
+    <circle cx="150" cy="24" r="5" fill="#38bdf8"/>
+    <text x="162" y="28" font-size="11" font-weight="600" fill="#f8fafc">HTTPS / REST (JSON API &amp; JWT)</text>
+
+    <!-- SSE Badge -->
+    <circle cx="380" cy="24" r="5" fill="#10b981"/>
+    <text x="392" y="28" font-size="11" font-weight="600" fill="#f8fafc">Server-Sent Events (SSE Streaming)</text>
+
+    <!-- Redis Lua Badge -->
+    <circle cx="640" cy="24" r="5" fill="#f43f5e"/>
+    <text x="652" y="28" font-size="11" font-weight="600" fill="#f8fafc">Redis RESP / Atomic Lua (TLS 6379)</text>
+
+    <!-- Pub/Sub Badge -->
+    <circle cx="900" cy="24" r="5" fill="#fbbf24"/>
+    <text x="912" y="28" font-size="11" font-weight="600" fill="#f8fafc">Redis Pub/Sub Bus</text>
+
+    <!-- SQL Badge -->
+    <circle cx="1060" cy="24" r="5" fill="#c084fc"/>
+    <text x="1072" y="28" font-size="11" font-weight="600" fill="#f8fafc">PostgreSQL JDBC (HikariCP / ACID)</text>
+
+    <!-- Note badge -->
+    <rect x="1235" y="12" width="90" height="24" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="0.8"/>
+    <text x="1245" y="28" font-size="9.5" font-weight="700" fill="#fbbf24">ACID + TTL</text>
+  </g>
+</svg>

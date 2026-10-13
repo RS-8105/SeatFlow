@@ -1,0 +1,141 @@
+flowchart TB
+    %% =========================================================================
+    %% SEATFLOW SYSTEM ARCHITECTURE DIAGRAM
+    %% =========================================================================
+
+    subgraph CLIENT_LAYER["1. Frontend & Client Layer (Vercel)"]
+        direction TB
+        Browser["Patron Web Browser"]
+        
+        subgraph VERCEL_APP["React 18 Single Page Application"]
+            Router["React Router v6<br/>(Protected & Public Routes)"]
+            TanStack["TanStack React Query v5<br/>(Client Cache & State)"]
+            ApiClient["API Client (Fetch)<br/>(Bearer Token & Idempotency)"]
+            EventSourceClient["Native EventSource Client<br/>(SSE Listener)"]
+            
+            Router --> TanStack
+            TanStack --> ApiClient
+            TanStack -.-> EventSourceClient
+        end
+        Browser <--> VERCEL_APP
+    end
+
+    subgraph CLOUD_EDGE["Cloud Edge & Security Routing"]
+        VercelCDN["Vercel Global CDN Edge<br/>(HTTPS / SSL Termination)"]
+        RenderRouter["Render Ingress Router<br/>(HTTPS / TLS / Reverse Proxy)"]
+    end
+
+    subgraph BACKEND_LAYER["2. Backend API Layer (Render - Spring Boot 3.3.4 / Java 21)"]
+        direction TB
+        
+        subgraph SECURITY_PIPELINE["Spring Security Filter Chain"]
+            CorsFilter["CORS Configuration<br/>(Allowed Origins & SSE Headers)"]
+            JwtFilter["JwtAuthenticationFilter<br/>(Stateless Bearer Validation)"]
+            SecurityConfig["SecurityFilterChain<br/>(Role & Endpoint Access)"]
+            
+            CorsFilter --> JwtFilter --> SecurityConfig
+        end
+
+        subgraph REST_CONTROLLERS["REST Controllers"]
+            AuthController["AuthController<br/>(/api/auth/**)"]
+            EventController["EventController<br/>(/api/events/**)"]
+            ShowtimeController["ShowtimeController<br/>(/api/showtimes/**)"]
+            HoldController["HoldController<br/>(/api/holds)"]
+            BookingController["BookingController<br/>(/api/holds/confirm, /api/bookings/**)"]
+            DemoController["ConcurrencyLabController<br/>(/api/demo/**)"]
+        end
+
+        subgraph APPLICATION_SERVICES["Core Domain Services"]
+            AuthService["AuthService & JwtService<br/>(BCrypt / Token Issuance)"]
+            HoldService["HoldService<br/>(Quotas & Hold Lifecycle)"]
+            BookingService["BookingService<br/>(Idempotency & Orchestration)"]
+            PaymentService["PaymentService<br/>(Simulated Payment Lifecycle)"]
+            ReconScheduler["HoldExpiryReconciliationScheduler<br/>(@Scheduled 30s)"]
+            HeartbeatScheduler["SSE Heartbeat Scheduler<br/>(@Scheduled 15s)"]
+        end
+
+        subgraph TRANSACTIONAL_WRITERS["Transactional Isolation Boundaries"]
+            TxBookingWriter["TransactionalBookingWriter<br/>(@Transactional + AfterCommit Sync)"]
+            TxPaymentWriter["TransactionalPaymentWriter<br/>(@Transactional + SELECT FOR UPDATE)"]
+        end
+
+        SECURITY_PIPELINE --> REST_CONTROLLERS
+        REST_CONTROLLERS --> APPLICATION_SERVICES
+        APPLICATION_SERVICES --> TRANSACTIONAL_WRITERS
+    end
+
+    subgraph REALTIME_CONCURRENCY["3. Real-Time & Concurrency Layer (Upstash Redis)"]
+        direction TB
+        
+        RedisTemplate["StringRedisTemplate & Lettuce Driver<br/>(TLS Port 6379)"]
+        
+        subgraph LUA_SCRIPTS["Atomic Redis Lua Scripts"]
+            LuaMultiHold["ATOMIC_MULTI_ACQUIRE_SCRIPT<br/>(All-or-nothing hold + TTL)"]
+            LuaCompareDel["COMPARE_AND_DELETE_SCRIPT<br/>(Token-verified release)"]
+            LuaReleaseOwner["RELEASE_HOLD_WITH_OWNER_SCRIPT<br/>(Atomic delete & publish)"]
+            LuaProbeAvail["PUBLISH_AVAILABLE_IF_UNHELD_SCRIPT<br/>(Atomic probe & notify)"]
+        end
+
+        subgraph REDIS_DATA["In-Memory State Store"]
+            HoldKeys[("seat_hold:{showtime}:{seat}<br/>(Value: holdToken, TTL: 300s)")]
+            OwnerKeys[("hold_owner:{holdToken}<br/>(Value: userId, TTL: 300s)")]
+        end
+
+        subgraph PUB_SUB_PIPELINE["Pub/Sub & SSE Fanout"]
+            RedisTopic{{"Redis Topic<br/>'showtime:seat-events'"}}
+            ListenerContainer["RedisMessageListenerContainer<br/>(Pub/Sub MessageListener)"]
+            SseService["SseBroadcastService<br/>(ConcurrentHashMap Emitters)"]
+        end
+
+        RedisTemplate --> LUA_SCRIPTS
+        LUA_SCRIPTS --> REDIS_DATA
+        LUA_SCRIPTS -.->|PUBLISH| RedisTopic
+        RedisTopic --> ListenerContainer
+        ListenerContainer --> SseService
+    end
+
+    subgraph PERSISTENT_STORAGE["4. Persistent Relational Storage (Neon PostgreSQL)"]
+        direction TB
+        HikariPool["HikariCP Connection Pool<br/>(Max 30, Timeout 20s)"]
+        
+        subgraph NEON_TABLES["PostgreSQL Schema (Flyway V1 - V4)"]
+            UsersTable[("users<br/>(Credentials & Passwords)")]
+            CatalogTables[("events / venues / showtimes / seats<br/>(Catalogue Hierarchy)")]
+            BookingsTable[("bookings<br/>(idempotency_key UNIQUE)")]
+            BookingSeatsTable[("booking_seats<br/>(idx_unique_confirmed_seat_showtime)")]
+            PaymentsTable[("payments<br/>(idx_unique_successful_payment_booking)")]
+        end
+
+        HikariPool --> NEON_TABLES
+    end
+
+    %% =========================================================================
+    %% INTER-COMPONENT CONNECTIONS & PROTOCOLS
+    %% =========================================================================
+    
+    VERCEL_APP -->|1. Static Assets / HTTPS| VercelCDN
+    ApiClient -->|2. REST API / HTTPS| RenderRouter
+    EventSourceClient -->|3. Streaming SSE / HTTPS| RenderRouter
+    
+    RenderRouter -->|4. HTTP Forwarding / Port 8080| SECURITY_PIPELINE
+    SseService -->|5. text/event-stream chunks| RenderRouter
+    
+    HoldService <-->|6. Atomic Holds & Quota| RedisTemplate
+    TxBookingWriter -->|7. After-Commit Lock Release| HoldService
+    TxBookingWriter -->|8. Broadcast BOOKED Event| SseService
+    
+    APPLICATION_SERVICES -->|9. SQL Queries / HikariCP| HikariPool
+    TRANSACTIONAL_WRITERS -->|10. ACID Writes & Row Locks| HikariPool
+
+    %% Styling & Classes
+    classDef client fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a;
+    classDef edge fill:#f0fdf4,stroke:#16a34a,stroke-width:1.5px,color:#14532d;
+    classDef backend fill:#eff6ff,stroke:#2563eb,stroke-width:1.5px,color:#1e3a8a;
+    classDef concurrency fill:#fef2f2,stroke:#dc2626,stroke-width:1.5px,color:#7f1d1d;
+    classDef storage fill:#faf5ff,stroke:#7c3aed,stroke-width:1.5px,color:#4c1d95;
+
+    class Browser,VERCEL_APP,Router,TanStack,ApiClient,EventSourceClient client;
+    class VercelCDN,RenderRouter edge;
+    class SECURITY_PIPELINE,REST_CONTROLLERS,APPLICATION_SERVICES,TRANSACTIONAL_WRITERS,CorsFilter,JwtFilter,SecurityConfig,AuthController,EventController,ShowtimeController,HoldController,BookingController,DemoController,AuthService,HoldService,BookingService,PaymentService,ReconScheduler,HeartbeatScheduler,TxBookingWriter,TxPaymentWriter backend;
+    class REALTIME_CONCURRENCY,RedisTemplate,LUA_SCRIPTS,REDIS_DATA,PUB_SUB_PIPELINE,LuaMultiHold,LuaCompareDel,LuaReleaseOwner,LuaProbeAvail,HoldKeys,OwnerKeys,RedisTopic,ListenerContainer,SseService concurrency;
+    class PERSISTENT_STORAGE,HikariPool,NEON_TABLES,UsersTable,CatalogTables,BookingsTable,BookingSeatsTable,PaymentsTable storage;

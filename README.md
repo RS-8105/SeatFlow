@@ -44,26 +44,18 @@ Redis-backed temporary seat holds and coordination.
   Local infrastructure                Docker Compose
   -----------------------------------------------------------------------
 
-## Architecture Overview
+## System Architecture
 
-``` text
-Browser (React + Vite)
-        |
-        | HTTP API / SSE
-        v
-Spring Boot REST API
-   |             |
-   v             v
-PostgreSQL      Redis
-(durable data)  (temporary holds,
-                 coordination / locks,
-                 pub/sub)
-```
+![SeatFlow System Architecture](docs/seatflow-architecture.png)
 
-PostgreSQL stores durable application data. Redis is used for temporary
-seat-hold state and coordination. The backend validates holds and
-booking requests; the frontend is not the source of truth for seat
-availability or booking success.
+For the comprehensive architecture breakdown, concurrency guarantees, and booking sequence diagram, see [`docs/architecture.md`](docs/architecture.md).
+
+### Architecture Highlights
+- **Fast-Path Concurrency (Tier 1 Defense):** Upstash Redis with atomic Lua scripts coordinates multi-seat temporary holds (300-second TTL), enforcing mutual exclusion and user quota limits (maximum 6 seats per user) before touching persistent storage.
+- **Durable Relational Ledger (Tier 2 Defense):** Neon PostgreSQL provides durable ledger storage with partial unique constraints (`idx_unique_confirmed_seat_showtime` on `booking_seats` where `status = 'CONFIRMED'`) and row-level locks (`SELECT FOR UPDATE`) as the immutable barrier against race conditions and double-bookings.
+- **Reactive Streaming Fanout:** Redis Pub/Sub acts as an inter-node message bus, broadcasting seat status transitions (`HELD`, `AVAILABLE`, `BOOKED`) across Spring Boot nodes to Server-Sent Events (SSE) emitters with 15-second heartbeats for instantaneous client UI synchronization.
+- **Idempotent Confirmation:** Client-supplied `Idempotency-Key` headers backed by a `UNIQUE` constraint on `bookings.idempotency_key` prevent duplicate reservations on network retries.
+- **Simulated Payment Engine:** Deterministic internal transactional state machine verifying row-level locks and idempotency constraints (not an external payment gateway).
 
 ## Repository Structure
 
