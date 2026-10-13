@@ -27,6 +27,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -108,8 +109,10 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         List<String> origins = allowedOrigins.stream()
+                .flatMap(origin -> Arrays.stream(origin.split(",")))
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
+                .distinct()
                 .toList();
 
         // Enforce: Wildcard origins must never be combined with allowCredentials=true
@@ -124,8 +127,17 @@ public class SecurityConfig {
         }
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Idempotency-Key", "X-Requested-With", "Accept"));
-        configuration.setExposedHeaders(List.of("Idempotency-Key"));
+        configuration.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "Idempotency-Key",
+                "X-Requested-With",
+                "Accept",
+                "Origin",
+                "Cache-Control",
+                "Last-Event-ID"
+        ));
+        configuration.setExposedHeaders(List.of("Idempotency-Key", "Content-Type"));
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

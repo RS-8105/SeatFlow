@@ -52,6 +52,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -880,5 +881,52 @@ public class ApiSecurityIntegrationTest {
 
         assertThat(node.has("path")).isTrue();
         assertThat(node.get("path").asText()).isEqualTo(expectedPath);
+    }
+
+    @Test
+    @Order(31)
+    @DisplayName("CORS allows requests from production Vercel frontend origin with credentials")
+    void corsAllowsProductionVercelOrigin() throws Exception {
+        mockMvc.perform(get("/api/events")
+                        .header("Origin", "https://seat-flow-peach.vercel.app"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "https://seat-flow-peach.vercel.app"))
+                .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
+    }
+
+    @Test
+    @Order(32)
+    @DisplayName("CORS preflight OPTIONS request from Vercel frontend returns allowed methods and headers")
+    void corsPreflightFromVercelOriginSucceeds() throws Exception {
+        mockMvc.perform(options("/api/holds/confirm")
+                        .header("Origin", "https://seat-flow-peach.vercel.app")
+                        .header("Access-Control-Request-Method", "POST")
+                        .header("Access-Control-Request-Headers", "Authorization, Content-Type, Idempotency-Key"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "https://seat-flow-peach.vercel.app"))
+                .andExpect(header().string("Access-Control-Allow-Credentials", "true"))
+                .andExpect(header().string("Access-Control-Allow-Methods", org.hamcrest.Matchers.containsString("POST")))
+                .andExpect(header().string("Access-Control-Allow-Headers", org.hamcrest.Matchers.containsString("Idempotency-Key")))
+                .andExpect(header().string("Access-Control-Expose-Headers", org.hamcrest.Matchers.containsString("Idempotency-Key")));
+    }
+
+    @Test
+    @Order(33)
+    @DisplayName("CORS preserves local development origins")
+    void corsPreservesLocalDevelopmentOrigins() throws Exception {
+        mockMvc.perform(get("/api/events")
+                        .header("Origin", "http://localhost:5173"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"))
+                .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
+    }
+
+    @Test
+    @Order(34)
+    @DisplayName("CORS rejects untrusted origin without access-control-allow-origin header")
+    void corsRejectsUntrustedOrigin() throws Exception {
+        mockMvc.perform(get("/api/events")
+                        .header("Origin", "https://malicious-site.example.com"))
+                .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
     }
 }
