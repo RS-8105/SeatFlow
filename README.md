@@ -55,7 +55,7 @@ Redis-backed temporary seat holds and coordination.
 
 ## System Architecture
 
-![SeatFlow System Architecture](docs/seatflow-architecture.svg)
+![SeatFlow System Architecture](docs/seatflow-architecture.png)
 
 For the detailed architecture, concurrency guarantees, and booking flow, see [`docs/architecture.md`](docs/architecture.md).
 
