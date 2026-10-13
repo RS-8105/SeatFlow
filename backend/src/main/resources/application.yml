@@ -32,7 +32,8 @@ spring:
       password: ${SPRING_DATA_REDIS_PASSWORD:}
       ssl:
         enabled: ${SPRING_DATA_REDIS_SSL_ENABLED:false}
-      timeout: 2000ms
+      timeout: ${SPRING_DATA_REDIS_TIMEOUT:10000ms}
+      connect-timeout: ${SPRING_DATA_REDIS_CONNECT_TIMEOUT:10000ms}
 
 ticketbooking:
   hold:

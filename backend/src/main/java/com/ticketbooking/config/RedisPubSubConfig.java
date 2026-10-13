@@ -22,6 +22,7 @@ public class RedisPubSubConfig {
     ) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
+        container.setMaxSubscriptionRegistrationWaitingTime(10000L);
         return container;
     }
 }
